@@ -132,6 +132,13 @@ def build():
         ["blur", "Desenfoque gaussiano, σ 0,5–1,5", "Fotométrica", "Sonda: puede eliminar detalle discriminante a 32 × 32"],
     ], [0.12, 0.28, 0.13, 0.47]))
     s.append(Spacer(1, 4))
+    s.append(p("La selección parte del diagnóstico. Como el conjunto está balanceado, la aumentación no se usa para "
+               "compensar clases minoritarias, sino para evaluar invariancias. El reflejo horizontal, la rotación y el zoom "
+               "reproducen el bloque del Momento 3 y se aíslan uno a uno para medir su aporte individual. El reflejo "
+               "vertical se incluye como caso que no preserva la semántica, porque en CIFAR-10 los objetos aparecen en su "
+               "orientación natural. El desenfoque se elige como sonda de riesgo por la baja resolución (32 × 32) y porque "
+               "Pájaro y Ciervo ya presentan la menor nitidez aproximada, de modo que reducir el detalle podría afectar "
+               "precisamente a las clases con menos información de bordes."))
     s.append(figure(FIGS / "aug_strip.png", W * 0.92,
                     "Figura 1. Las mismas imágenes de entrenamiento bajo cada condición (una realización aleatoria)."))
 
@@ -216,6 +223,7 @@ def build():
         "<b>Una sola semilla (42):</b> las diferencias son descriptivas de esta ejecución; el cambio de +0,09 pp de flip_h está dentro del ruido esperable.",
         "<b>Presupuesto de 30 épocas:</b> ninguna condición salvo blur activó el paro temprano; las condiciones con aumentación podrían requerir más épocas u otros hiperparámetros.",
         "<b>Resolución y duplicados:</b> CIFAR-10 es de 32 × 32 y los 117 pares pHash no están confirmados como duplicados.",
+        "<b>Cobertura fotométrica:</b> el diagnóstico mostró diferencias de brillo y contraste entre clases (brillo medio de 0,417 en Rana a 0,559 en Avión), pero no se evaluó una transformación de brillo o contraste que preserve la etiqueta; el blur fue la única transformación fotométrica y se usó como sonda de riesgo.",
         "<b>Trabajo posterior:</b> repetir con varias semillas (media, desviación e intervalos de confianza), ampliar el presupuesto para las condiciones aumentadas y evaluar intensidades menores de rotación, zoom y blur.",
     ]))
     s.append(p("Referencias", H2))
