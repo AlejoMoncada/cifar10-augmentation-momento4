@@ -1,0 +1,20 @@
+[project]
+name = "cifar10-augmentation"
+version = "0.1.0"
+description = "Reproducible CIFAR-10 data-augmentation experiment"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "tensorflow",
+    "scikit-learn",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "seaborn",
+    "pillow",
+    "imagehash",
+    "opencv-python-headless",
+    "scikit-image",
+    "jupyter",
+    "nbconvert",
+    "ipykernel",
+]
