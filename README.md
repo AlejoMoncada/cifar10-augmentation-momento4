@@ -28,4 +28,4 @@ The notebook's first code cell controls `SCENARIOS`, `SEEDS`, `EPOCHS`, and `SUB
 - `results/metrics.csv`, `results/run_metrics.csv`, `results/per_class_metrics.csv`, `results/generalization_gaps.csv`: aggregate and run-level tables.
 - `results/figures/*.png`: 200-dpi EDA, augmentation, learning-curve, confusion, class-F1, and prediction-example figures.
 
-Completed runs are reused when all three run artifacts exist. pHash hits are screening candidates, not confirmed duplicates. Augmentation does not replace representative data.
+Completed runs are reused only when their saved run configuration (epochs, batch size, subset, split/data fingerprint) matches the requested run. A mismatch stops with an error rather than mixing smoke and full-data results; incomplete runs are retrained. pHash hits are screening candidates, not confirmed duplicates. Augmentation does not replace representative data.

@@ -1,11 +1,13 @@
 """Resumable CIFAR-10 scenario training and untouched-test evaluation."""
 
 import gc
+import hashlib
 import json
 import os
 from pathlib import Path
 import random
 import time
+import zipfile
 
 import numpy as np
 import pandas as pd
@@ -40,6 +42,28 @@ def _json(path: Path, content: dict) -> None:
     path.write_text(json.dumps(content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _dataset_fingerprint(partitions: tuple[np.ndarray, ...]) -> str:
+    """Bind a run to the ordered pixels and labels in all three splits."""
+    digest = hashlib.sha256()
+    for array in partitions:
+        value = np.asarray(array)
+        digest.update(f"{value.shape}:{value.dtype};".encode("ascii"))
+        digest.update(memoryview(np.ascontiguousarray(value)).cast("B"))
+    return digest.hexdigest()
+
+
+def _artifacts_valid(history_path: Path, metrics_path: Path, predictions_path: Path) -> bool:
+    if not all(path.is_file() for path in (history_path, metrics_path, predictions_path)):
+        return False
+    try:
+        json.loads(history_path.read_text(encoding="utf-8"))
+        json.loads(metrics_path.read_text(encoding="utf-8"))
+        with np.load(predictions_path) as predictions:
+            return {"prediction", "probability", "truth"}.issubset(predictions.files)
+    except (OSError, ValueError, EOFError, zipfile.BadZipFile):
+        return False
+
+
 def balanced_subset_indices(labels: np.ndarray, per_class: int, seed: int = 42) -> np.ndarray:
     """Choose the same reproducible balanced training subset for all scenarios."""
     if per_class <= 0:
@@ -66,16 +90,49 @@ def train_scenario(
     output_root: Path = Path("results"),
     epochs: int = 30,
     batch_size: int = 128,
+    subset_per_class: int | None = None,
+    dataset_fingerprint: str | None = None,
 ) -> dict:
     """Train once with the exact Momento 3 optimizer, callbacks, and data pipeline."""
     if scenario not in SCENARIOS:
         raise ValueError(f"Unknown scenario: {scenario}")
     run_dir = Path(output_root) / "runs" / f"{scenario}_seed{seed}"
     history_path, metrics_path, predictions_path = (run_dir / name for name in ("history.json", "metrics.json", "predictions.npz"))
-    if all(path.is_file() for path in (history_path, metrics_path, predictions_path)):
-        print(f"Skipping completed run: {run_dir}")
-        return json.loads(metrics_path.read_text(encoding="utf-8"))
+    manifest_path = run_dir / "run_config.json"
+    marker_path = run_dir / ".in_progress.json"
+    if dataset_fingerprint is None:
+        dataset_fingerprint = _dataset_fingerprint((train_images, train_labels, val_images, val_labels, test_images, test_labels))
+    config = {
+        "version": 1,
+        "scenario": scenario,
+        "seed": int(seed),
+        "epochs": int(epochs),
+        "batch_size": int(batch_size),
+        "subset_per_class": subset_per_class,
+        "train_count": len(train_labels),
+        "validation_count": len(val_labels),
+        "test_count": len(test_labels),
+        "dataset_sha256": dataset_fingerprint,
+    }
+    valid_artifacts = _artifacts_valid(history_path, metrics_path, predictions_path)
+    if manifest_path.is_file() or marker_path.is_file():
+        prior_path = manifest_path if manifest_path.is_file() else marker_path
+        try:
+            prior = json.loads(prior_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError(f"Unreadable run configuration at {prior_path}; inspect this run before reuse") from error
+        if prior != config:
+            changed = ", ".join(key for key in config if prior.get(key) != config[key])
+            raise ValueError(f"Existing run configuration differs at {run_dir}: {changed}. Use a separate output directory or remove the stale run explicitly.")
+        if manifest_path.is_file() and valid_artifacts:
+            marker_path.unlink(missing_ok=True)
+            print(f"Skipping completed run: {run_dir} (configuration matched)")
+            return json.loads(metrics_path.read_text(encoding="utf-8"))
+    elif valid_artifacts:
+        raise ValueError(f"Complete legacy run at {run_dir} has no configuration manifest; inspect or move it before reuse.")
     run_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path.unlink(missing_ok=True)
+    _json(marker_path, config)
 
     os.environ["PYTHONHASHSEED"] = str(seed)
     os.environ["TF_DETERMINISTIC_OPS"] = "1"
@@ -133,6 +190,10 @@ def train_scenario(
     _json(history_path, {"history": {key: [float(value) for value in values] for key, values in history.items()}, "epoch_seconds": metrics["epoch_seconds"]})
     np.savez_compressed(predictions_path, prediction=prediction, probability=probability, truth=test_labels)
     _json(metrics_path, metrics)
+    pending_manifest = run_dir / "run_config.json.tmp"
+    _json(pending_manifest, config)
+    pending_manifest.replace(manifest_path)
+    marker_path.unlink(missing_ok=True)
     print(f"{scenario} seed={seed}: accuracy={metrics['accuracy']:.4f}, epochs={metrics['epochs_trained']}, epoch_seconds={metrics['epoch_seconds']}")
     del model
     gc.collect()
@@ -158,8 +219,12 @@ def run_experiments(
         train_images, train_labels = train_images[selected], train_labels[selected]
     output_root = Path(output_root)
     output_root.mkdir(parents=True, exist_ok=True)
+    fingerprint = _dataset_fingerprint((train_images, train_labels, val_images, val_labels, test_images, test_labels))
     records = [
-        train_scenario(scenario, seed, train_images, train_labels, val_images, val_labels, test_images, test_labels, output_root, epochs)
+        train_scenario(
+            scenario, seed, train_images, train_labels, val_images, val_labels, test_images, test_labels,
+            output_root, epochs, subset_per_class=subset_per_class, dataset_fingerprint=fingerprint,
+        )
         for scenario in scenarios for seed in seeds
     ]
     rows = [{key: record[key] for key in ("scenario", "seed", "accuracy", "macro_f1", "epochs_trained", "fit_seconds")} for record in records]
