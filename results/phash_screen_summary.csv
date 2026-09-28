@@ -1,0 +1,2 @@
+official_train_count,test_count,max_hamming_distance,candidate_pair_count,status
+50000,10000,4,117,unconfirmed candidates

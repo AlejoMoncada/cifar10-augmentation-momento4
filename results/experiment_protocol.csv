@@ -1,0 +1,12 @@
+parameter,value
+Seed,42
+Train/validation/test,40000/10000/10000
+Normalization,float32 / 255.0
+Epoch limit,30
+Batch size,128
+Optimizer,"Adam, learning rate 1e-3"
+Loss,sparse_categorical_crossentropy
+EarlyStopping,"val_loss, patience=6, restore_best_weights=True"
+ReduceLROnPlateau,"val_loss, factor=0.5, patience=2, min_lr=1e-6"
+tf.data shuffle,"buffer_size=10000, seed per run"
+Mixed precision,disabled

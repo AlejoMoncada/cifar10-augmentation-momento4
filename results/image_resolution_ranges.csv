@@ -1,0 +1,5 @@
+partition,count,shape,dtype,min,max
+official_train,50000,"(32, 32, 3)",uint8,0.0,255.0
+train,40000,"(32, 32, 3)",float32,0.0,1.0
+validation,10000,"(32, 32, 3)",float32,0.0,1.0
+test,10000,"(32, 32, 3)",float32,0.0,1.0

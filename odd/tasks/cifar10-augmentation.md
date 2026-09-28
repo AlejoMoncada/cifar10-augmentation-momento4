@@ -26,8 +26,8 @@ Teammates built Momento 3 (`Act3_ClasificacionVisualCNN.ipynb`) on CIFAR-10. Mom
 - [x] T2 Data + EDA: loader from local batches, class balance, resolution, pixel stats per class, near-duplicate check train↔test (perceptual hash on a sample or full), sample grid, `results/dataset_summary.csv`, `docs/DATASET.md`. Route: delegated (Codex).
 - [x] T3 Protocol: reproduce Momento 3 split and config; save split indices. Route: delegated (Codex).
 - [x] T4 Augmentation: reference (none), full (flip+rot+zoom as Momento 3), ablations (each alone), and deliberately label-questionable/harmful probes (vertical flip, Gaussian blur). Example grid. Route: delegated (Codex).
-- [ ] T5 Training: all scenarios, configurable seeds/epochs; histories + metrics saved. Route: delegated (Codex).
-- [ ] T6 Evaluation: test (no aug) accuracy, macro-F1, per-class P/R/F1, side-by-side confusion matrices, learning curves, generalization gap table, correct/incorrect examples with confidence. Route: delegated (Codex).
+- [x] T5 Training: all scenarios, configurable seeds/epochs; histories + metrics saved. Route: delegated (Codex).
+- [x] T6 Evaluation: test (no aug) accuracy, macro-F1, per-class P/R/F1, side-by-side confusion matrices, learning curves, generalization gap table, correct/incorrect examples with confidence. Route: delegated (Codex).
 - [x] T7 Student placeholders + README. Route: delegated (Codex).
 
 ## Progress / evidence
@@ -42,3 +42,7 @@ Teammates built Momento 3 (`Act3_ClasificacionVisualCNN.ipynb`) on CIFAR-10. Mom
 - Full-set pHash screening compared all 50,000 official training and 10,000 test images at Hamming distance ≤ 4, finding 117 **candidate pairs** (not confirmed duplicates). Five real-data EDA/augmentation PNGs were written under `results/figures/`: `class_balance.png`, `class_samples.png`, `brightness_contrast.png`, `augmentation_grid.png`, and `near_duplicate_candidates.png`.
 - Required real-data smoke ran under isolated `results/smoke/` with exactly 100 training images per class, full 10,000-image validation and test partitions, one epoch, and scenarios `reference` and `full`. Both completed and wrote `history.json`, `metrics.json`, `predictions.npz`, `run_config.json`, four aggregate CSVs, and six comparison PNGs. Observed epoch times: reference `10.641463750012917` s; full `10.951815457985504` s. Test accuracy / macro-F1: reference `0.1000` / `0.01864875864875865`; full `0.1017` / `0.02148725995322227`. These are smoke-only metrics, not final findings.
 - T5 and T6 remain unchecked because the full seven-scenario, default 30-epoch experiment and complete notebook were intentionally not run. The real-data smoke proves the pipeline but is not a substitute for the full study.
+
+- Full run (scripts/run_all.py, 40k/10k/10k, seed 42, 30 epochs): test accuracy reference 0.8375, full 0.7406, flip_h 0.8389, rotation 0.7706, zoom 0.8070, flip_v 0.7606, blur 0.5339 (early stop at epoch 8). Manifests backfilled for runs trained before the manifest feature.
+- Deliverable notebook executed in place with NB_REUSE_ONLY=1: 17/17 code cells, 0 errors, 12 figures. Fixed hidden row labels in augmentation grid.
+- Pending (students): analysis/conclusion cells and PDF report.

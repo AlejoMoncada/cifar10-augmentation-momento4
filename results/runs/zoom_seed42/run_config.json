@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scenario": "zoom",
+  "seed": 42,
+  "epochs": 30,
+  "batch_size": 128,
+  "subset_per_class": null,
+  "train_count": 40000,
+  "validation_count": 10000,
+  "test_count": 10000,
+  "dataset_sha256": "b4ad1f7585429ab69886323e6166bbb9dba234abd25eb2f9c0ceae651258da6c"
+}

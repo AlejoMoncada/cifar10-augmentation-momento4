@@ -1,0 +1,8 @@
+scenario,transformation,semantic_rationale
+reference,none,Control without stochastic transformation
+full,horizontal flip + rotation ±36° + zoom 10%,Momento 3 embedded block
+flip_h,horizontal flip,Usually preserves animal and vehicle class
+rotation,RandomRotation(0.1): ±36°,Tests orientation tolerance
+zoom,RandomZoom(0.1): about 10%,Tests scale variation
+flip_v,vertical flip,Questionable: upside-down animals and vehicles are out of distribution
+blur,"Gaussian blur, sigma 0.5–1.5",May erase class-discriminating detail at 32×32
