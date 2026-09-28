@@ -93,7 +93,7 @@ def build():
     s.append(p("Actividad Formativa - Calidad de datos visuales e interpretación: aumentación controlada", HEAD))
     s.append(p("Etapa: Unidad 2", HEAD))
     s.append(p("Integrantes: Edgar Julian Mendez Ortegon - Noel Eduardo Perez Barrios - William "
-               "Aljandro Moncada Cifuentes", HEAD))
+               "Alejandro Moncada Cifuentes", HEAD))
     s.append(rule())
     s.append(p("Actividad: Aumentación controlada de datos en CIFAR-10", TITLE))
     s.append(rule())
@@ -229,7 +229,7 @@ def build():
     doc = SimpleDocTemplate(str(OUT), pagesize=letter, leftMargin=2.2 * cm, rightMargin=2.2 * cm,
                             topMargin=1.6 * cm, bottomMargin=1.6 * cm,
                             title="Reporte comparativo - Actividad 4 - Aumentación controlada de datos en CIFAR-10",
-                            author="Edgar Julian Mendez Ortegon; Noel Eduardo Perez Barrios; William Aljandro Moncada Cifuentes",
+                            author="Edgar Julian Mendez Ortegon; Noel Eduardo Perez Barrios; William Alejandro Moncada Cifuentes",
                             subject="Técnicas Avanzadas de Modelado en IA - Unidad 2")
     doc.build(s)
     print("written", OUT)
